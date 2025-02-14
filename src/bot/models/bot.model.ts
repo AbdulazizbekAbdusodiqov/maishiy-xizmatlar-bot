@@ -6,7 +6,8 @@ interface IBotCreationAttr {
     user_name: string | undefined
     first_name: string| undefined
     last_name: string| undefined
-    lang:string | undefined
+    lang:string | undefined,
+    role: string | undefined
 }
 
 @Table({ tableName: "bot" })
@@ -41,6 +42,11 @@ export class Bot extends Model<Bot, IBotCreationAttr> {
         type: DataType.STRING,
     })
     lang:string| undefined
+ 
+    @Column({
+        type: DataType.STRING,
+    })
+    role:string| undefined
 
     @Column({
         type: DataType.BOOLEAN,
