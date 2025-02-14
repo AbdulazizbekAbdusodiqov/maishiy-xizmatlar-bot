@@ -34,8 +34,8 @@ export class BotUpdate {
   @UseFilters(TelegrafExceptionFilter)
   @UseGuards(AdminBotGuard)
   @Hears("Kasb qo'shish 🧑‍💻")
-  async onAddPerfission(@Ctx() ctx: Context) {
-    await this.botService.onAddPerfission(ctx);
+  async onAddProfession(@Ctx() ctx: Context) {
+    await this.botService.onAddProfession(ctx);
   }
   
   @On('text')
