@@ -21,7 +21,7 @@ import { Profession } from "./bot/models/professions.model";
       database: process.env.POSTGRES_DB,
       models: [Bot,Profession],
       autoLoadModels: true,
-      sync: { alter: true, force:true },
+      sync: { alter: true, force:false },
       logging: false,
     }),
     BotModule,
