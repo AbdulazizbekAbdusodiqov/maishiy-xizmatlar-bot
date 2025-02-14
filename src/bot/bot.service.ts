@@ -26,6 +26,13 @@ export class BotService {
           .resize()
           .oneTime(),
       });
+    } else {
+      await ctx.reply(
+        `BU BOT MAQSADI MAISHIY XIZMATLARGA NAVBATNI TELEGRAM ORQALI TIZIMLASHTIRISH`,
+        {
+          ...Markup.removeKeyboard(),
+        }
+      );
     }
   }
 
@@ -49,8 +56,7 @@ export class BotService {
       });
     }
   }
-  
-  
+
   async onClickMaster(ctx: Context) {
     const user_id = ctx.from?.id;
     const user = await this.botModel.findByPk(user_id);
@@ -62,18 +68,18 @@ export class BotService {
           .resize()
           .oneTime(),
       });
-    } else if(!user.role){
-      user.role = "master"
-      await user.save()
+    } else if (!user.role) {
+      user.role = "master";
+      await user.save();
 
       await ctx.reply("Iltimos ish turini tanlang:", {
-        parse_mode:'HTML',
+        parse_mode: "HTML",
         ...Markup.keyboard([
-          ["SARTAROSHXONA","GO'ZALLIK SALONI"],
-          ["ZARGARLIK USTAXONASI","SOATSOZ"],
+          ["SARTAROSHXONA", "GO'ZALLIK SALONI"],
+          ["ZARGARLIK USTAXONASI", "SOATSOZ"],
           ["POYABZAL USTASI"],
-        ])
-      })
+        ]),
+      });
     }
   }
 }
