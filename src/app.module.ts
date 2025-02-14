@@ -4,6 +4,7 @@ import { TelegrafModule } from "nestjs-telegraf";
 import { ConfigModule } from "@nestjs/config";
 import { Bot } from "./bot/models/bot.model";
 import { SequelizeModule } from "@nestjs/sequelize";
+import { Profession } from "./bot/models/professions.model";
 
 @Module({
   imports: [
@@ -18,9 +19,9 @@ import { SequelizeModule } from "@nestjs/sequelize";
       port: Number(process.env.POSTGRES_PORT),
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      models: [Bot],
+      models: [Bot,Profession],
       autoLoadModels: true,
-      sync: { alter: true },
+      sync: { alter: true, force:true },
       logging: false,
     }),
     BotModule,

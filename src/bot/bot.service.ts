@@ -22,7 +22,7 @@ export class BotService {
 
       await ctx.reply(`Iltimos Ro'yxatdan o'tish tugmasini bosing:`, {
         parse_mode: "HTML",
-        ...Markup.keyboard([["Ro'yxatdan o'tish 👨‍🔧"]])
+        ...Markup.keyboard([["Ro'yxatdan o'tish 👨‍💻"]])
           .resize()
           .oneTime(),
       });
@@ -58,6 +58,33 @@ export class BotService {
   }
 
   async onClickMaster(ctx: Context) {
+    const user_id = ctx.from?.id;
+    const user = await this.botModel.findByPk(user_id);
+
+    if (!user) {
+      await ctx.reply(`Iltimos oldin botni qayta ishga tushuring`, {
+        parse_mode: "HTML",
+        ...Markup.keyboard([["/start"]])
+          .resize()
+          .oneTime(),
+      });
+    } else if (!user.role) {
+      user.role = "master";
+      await user.save();
+
+      await ctx.reply("Iltimos ish turini tanlang:", {
+        parse_mode: "HTML",
+        ...Markup.keyboard([
+          ["SARTAROSHXONA", "GO'ZALLIK SALONI"],
+          ["ZARGARLIK USTAXONASI", "SOATSOZ"],
+          ["POYABZAL USTASI"],
+        ]),
+      });
+    }
+  }
+
+  
+  async onCommanAdmin(ctx: Context) {
     const user_id = ctx.from?.id;
     const user = await this.botModel.findByPk(user_id);
 

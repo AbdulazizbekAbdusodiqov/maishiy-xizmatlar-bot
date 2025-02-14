@@ -1,6 +1,9 @@
 import { Context } from "telegraf";
 import { BotService } from "./bot.service";
 import { Command, Ctx, Hears, Start, Update } from "nestjs-telegraf";
+import { UseFilters, UseGuards } from "@nestjs/common";
+import { TelegrafExceptionFilter } from "src/filters/telegraf-exception.filter";
+import { AdminBotGuard } from "src/guards/admin-bot.guard";
 
 @Update()
 export class BotUpdate {
@@ -11,7 +14,7 @@ export class BotUpdate {
     await this.botService.onStart(ctx)
   }
 
-  @Hears("Ro'yxatdan o'tish 👨‍🔧")
+  @Hears("Ro'yxatdan o'tish 👨‍💻")
   async onRegistration(@Ctx() ctx : Context){
     await this.botService.onRegistration(ctx)
   }
@@ -20,5 +23,14 @@ export class BotUpdate {
   async onClickMaster(@Ctx() ctx : Context){
     await this.botService.onClickMaster(ctx)
   }
+  
+
+@UseFilters(TelegrafExceptionFilter)
+@UseGuards(AdminBotGuard)
+  @Command('admin')
+  async onCommanAdmin(@Ctx() ctx : Context){
+    await this.botService.onCommanAdmin(ctx)
+  }
+  
 
 }
