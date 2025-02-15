@@ -1,3 +1,3 @@
 
 
-export const BOT_NAME = "test Maishiy xizmatlar bot"
+export const BOT_NAME = "Maishiy xizmatlar bot"
