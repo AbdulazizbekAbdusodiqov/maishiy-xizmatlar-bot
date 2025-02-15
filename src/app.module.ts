@@ -6,11 +6,13 @@ import { Bot } from "./bot/models/bot.model";
 import { SequelizeModule } from "@nestjs/sequelize";
 import { Profession } from "./bot/models/professions.model";
 import { Master } from "./bot/models/master.model";
+import { BOT_NAME } from "./app.constants";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ envFilePath: ".env", isGlobal: true }),
     TelegrafModule.forRoot({
+      botName:BOT_NAME,
       token: process.env.BOT_TOKEN!,
     }),
     SequelizeModule.forRoot({

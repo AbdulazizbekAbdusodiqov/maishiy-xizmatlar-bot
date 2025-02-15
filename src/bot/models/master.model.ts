@@ -11,14 +11,20 @@ interface IMasterCreationAttr {
   start_work_time: string | undefined;
   end_work_time: string | undefined;
   one_working_time: number | undefined;
-  last_state:string;
+  last_state: string;
 }
 
 @Table({ tableName: "master" })
 export class Master extends Model<Master, IMasterCreationAttr> {
   @Column({
-    type: DataType.BIGINT,
+    type: DataType.INTEGER,
     primaryKey: true,
+    autoIncrement:true
+
+  })
+  id: number | undefined;
+  @Column({
+    type: DataType.BIGINT,
   })
   user_id: number | undefined;
 
@@ -54,4 +60,13 @@ export class Master extends Model<Master, IMasterCreationAttr> {
     type: DataType.STRING,
   })
   one_working_time: number | undefined;
+  @Column({
+    type: DataType.BOOLEAN,
+  })
+  is_confirmed: boolean | undefined;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  last_state: string;
 }

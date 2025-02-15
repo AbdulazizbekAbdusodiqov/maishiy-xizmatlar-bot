@@ -19,6 +19,7 @@ export class BotUpdate {
 
   @Start()
   async onStart(@Ctx() ctx: Context) {
+    
     await this.botService.onStart(ctx);
   }
   @Command("stop")
@@ -39,6 +40,22 @@ export class BotUpdate {
   async onClickProfession(@Ctx() ctx: Context) {
     await this.botService.onClickProfession(ctx);
   }
+  @Action(/^start_work_time__+\d+/)
+  async onClickStartWorkTime(@Ctx() ctx: Context) {    
+    await this.botService.onClickStartWorkTime(ctx);
+  }
+  @Action(/^one_working_time__+\d+/)
+  async onClickOneWorkingTime(@Ctx() ctx: Context) {    
+    await this.botService.onClickOneWorkingTime(ctx);
+  }
+
+  
+  @Action(/^end_work_time__+\d+/)
+  async onClickEndWorkTime(@Ctx() ctx: Context) {    
+    await this.botService.onClickEndWorkTime(ctx);
+  }
+
+
   @UseFilters(TelegrafExceptionFilter)
   @UseGuards(AdminBotGuard)
   @Command("admin")
@@ -46,11 +63,26 @@ export class BotUpdate {
     await this.botService.onCommanAdmin(ctx);
   }
 
+
   @UseFilters(TelegrafExceptionFilter)
   @UseGuards(AdminBotGuard)
   @Hears("Kasb qo'shish 🧑‍💻")
   async onAddProfession(@Ctx() ctx: Context) {
     await this.botService.onAddProfession(ctx);
+  }
+
+  @Hears("Tashlab ketish ➡️")
+  async onSkip(@Ctx() ctx: Context) {
+    await this.botService.onSkip(ctx);
+  }
+
+  @On("contact")
+  async onContact(@Ctx() ctx: Context) {
+    await this.botService.onContact(ctx);
+  }
+  @On("location")
+  async onLocation(@Ctx() ctx: Context) {
+    await this.botService.onLocation(ctx);
   }
 
   @On("text")
