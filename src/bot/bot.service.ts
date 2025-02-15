@@ -24,24 +24,38 @@ export class BotService {
           first_name: ctx.from?.first_name,
           last_name: ctx.from?.last_name,
           lang: ctx.from?.language_code,
+          status: true,
         });
-
-        await ctx.reply(`Iltimos Ro'yxatdan o'tish tugmasini bosing:`, {
-          parse_mode: "HTML",
-          ...Markup.keyboard([["Ro'yxatdan o'tish 👨‍💻"]])
-            .resize()
-            .oneTime(),
-        });
-      } else {
-        await ctx.reply(
-          `BU BOT MAQSADI MAISHIY XIZMATLARGA NAVBATNI TELEGRAM ORQALI TIZIMLASHTIRISH`,
-          {
-            ...Markup.removeKeyboard(),
-          }
-        );
+      } else if (user && !user.status) {
+        user.status = true;
+        await user.save();
       }
+
+      await ctx.reply(`Iltimos Ro'yxatdan o'tish tugmasini bosing:`, {
+        parse_mode: "HTML",
+        ...Markup.keyboard([["Ro'yxatdan o'tish 👨‍💻"]])
+          .resize()
+          .oneTime(),
+      });
     } catch (error) {
       console.log("onStart error: ", error);
+    }
+  }
+  async onStop(ctx: Context) {
+    try {
+      const user_id = ctx.from?.id;
+      const user = await this.botModel.findByPk(user_id);
+
+      if (user && user.status) {
+        user.status = false;
+        await user.save();
+
+        await ctx.reply("Sizni yana kutib qolamiz😕", {
+          ...Markup.removeKeyboard(),
+        });
+      }
+    } catch (error) {
+      console.log("onStop error: ", error);
     }
   }
 
@@ -70,6 +84,45 @@ export class BotService {
     }
   }
 
+  async onClickProfession(ctx: Context) {
+    try {
+      const user_id = ctx.from?.id;
+      const user = await this.botModel.findByPk(user_id);
+
+      if (!user) {
+        await ctx.reply(`Iltimos oldin botni qayta ishga tushuring`, {
+          parse_mode: "HTML",
+          ...Markup.keyboard([["/start"]])
+            .resize()
+            .oneTime(),
+        });
+      } else if (user) {
+        user.role = "master";
+        await user.save();
+        const professions = await this.professionModel.findAll({
+          where: { last_state: "finish" },
+        });
+        let replyProfessions: any[] = [];
+
+        professions.forEach((profession) =>
+          replyProfessions.push([
+            {
+              text: profession.name,
+              callback_data: `profession_${profession.id}`,
+            },
+          ])
+        );
+
+        await ctx.reply("Iltimos ish turini tanlang:", {
+          reply_markup: {
+            inline_keyboard: replyProfessions,
+          },
+        });
+      }
+    } catch (error) {
+      console.log("onClickProfession error: ", error);
+    }
+  }
   async onClickMaster(ctx: Context) {
     try {
       const user_id = ctx.from?.id;
@@ -82,17 +135,27 @@ export class BotService {
             .resize()
             .oneTime(),
         });
-      } else if (!user.role) {
+      } else if (user) {
         user.role = "master";
         await user.save();
+        const professions = await this.professionModel.findAll({
+          where: { last_state: "finish" },
+        });
+        let replyProfessions: any[] = [];
+
+        professions.forEach((profession) =>
+          replyProfessions.push([
+            {
+              text: profession.name,
+              callback_data: `profession_${profession.id}`,
+            },
+          ])
+        );
 
         await ctx.reply("Iltimos ish turini tanlang:", {
-          parse_mode: "HTML",
-          ...Markup.keyboard([
-            ["SARTAROSHXONA", "GO'ZALLIK SALONI"],
-            ["ZARGARLIK USTAXONASI", "SOATSOZ"],
-            ["POYABZAL USTASI"],
-          ]),
+          reply_markup: {
+            inline_keyboard: replyProfessions,
+          },
         });
       }
     } catch (error) {
@@ -141,6 +204,7 @@ export class BotService {
           });
           if (profession && !profession.name) {
             profession.name = ctx.message.text;
+            profession.last_state = "finish";
             await profession.save();
 
             await ctx.replyWithHTML("Yangi kasb muvaffaqqiyatli saqlandi✅", {

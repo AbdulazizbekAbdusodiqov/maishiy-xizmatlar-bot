@@ -5,6 +5,7 @@ import { ConfigModule } from "@nestjs/config";
 import { Bot } from "./bot/models/bot.model";
 import { SequelizeModule } from "@nestjs/sequelize";
 import { Profession } from "./bot/models/professions.model";
+import { Master } from "./bot/models/master.model";
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { Profession } from "./bot/models/professions.model";
       port: Number(process.env.POSTGRES_PORT),
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      models: [Bot,Profession],
+      models: [Bot,Profession, Master],
       autoLoadModels: true,
       sync: { alter: true, force:false },
       logging: false,
