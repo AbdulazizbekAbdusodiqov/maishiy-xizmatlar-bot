@@ -17,7 +17,6 @@ export class Profession extends Model<Profession, IProfessionsCreationAttr> {
   @Column({
     type: DataType.STRING,
     unique: true,
-    allowNull: false,
   })
   name: string;
 

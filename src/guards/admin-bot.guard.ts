@@ -9,15 +9,15 @@ export class AdminBotGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = TelegrafExecutionContext.create(context);
     const { from } = ctx.getContext<Context>();
+    console.log(from?.id);
 
-    if (Number(this.ADMIN) != from!.id) {
+    if (this.ADMIN != from?.id) {
       throw new TelegrafException("Siz adminstrator emassiz, Ruxsat yo'q 🙅‍♂️");
     }
 
     return true;
   }
 }
-
 
 // @UseFilters(TelegrafExceptionFilter)
 // @UseGuards(AdminBotGuard)

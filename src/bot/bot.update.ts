@@ -35,6 +35,7 @@ export class BotUpdate {
   @UseGuards(AdminBotGuard)
   @Hears("Kasb qo'shish 🧑‍💻")
   async onAddProfession(@Ctx() ctx: Context) {
+    console.log("hellomaleykum");
     await this.botService.onAddProfession(ctx);
   }
   

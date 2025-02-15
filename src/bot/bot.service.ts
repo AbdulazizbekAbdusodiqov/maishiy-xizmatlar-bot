@@ -115,7 +115,9 @@ export class BotService {
 
   async onAddProfession(ctx: Context) {
     try {
-      await this.professionModel.create({ last_state: "name" });
+      const newProfession = await this.professionModel.create({
+        last_state: "name",
+      });
       await ctx.reply("Kasb nomini kiriting masalan <b>Tikuvchi</b>", {
         parse_mode: "HTML",
         ...Markup.removeKeyboard(),
