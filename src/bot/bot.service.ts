@@ -153,7 +153,9 @@ export class BotService {
         });
         if (master && master.last_state == "end_work_time") {
           const end_work_time = ctx.callbackQuery!["data"].split("__")[1];
-          master.start_work_time = end_work_time;
+          console.log(end_work_time);
+          
+          master.end_work_time = end_work_time;
           master.last_state = "one_working_time";
           await master.save();
 
