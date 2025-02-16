@@ -1,4 +1,5 @@
-import { Column, DataType, Model, Table } from "sequelize-typescript";
+import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { Profession } from "./professions.model";
 
 interface IMasterCreationAttr {
   user_id: number | undefined;
@@ -20,9 +21,19 @@ export class Master extends Model<Master, IMasterCreationAttr> {
     type: DataType.INTEGER,
     primaryKey: true,
     autoIncrement:true
-
+    
   })
   id: number | undefined;
+
+  @ForeignKey(()=>Profession)
+  @Column({
+    type: DataType.INTEGER,
+  })
+  profession_id: number | undefined;
+
+  @BelongsTo(()=>Profession)
+  profession : Profession
+
   @Column({
     type: DataType.BIGINT,
   })

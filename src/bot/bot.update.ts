@@ -36,19 +36,21 @@ export class BotUpdate {
   async onClickMaster(@Ctx() ctx: Context) {
     await this.botService.onClickMaster(ctx);
   }
+
   @Action(/^profession_+\d+/)
   async onClickProfession(@Ctx() ctx: Context) {
     await this.botService.onClickProfession(ctx);
   }
+  
   @Action(/^start_work_time__+\d+/)
   async onClickStartWorkTime(@Ctx() ctx: Context) {    
     await this.botService.onClickStartWorkTime(ctx);
   }
+  
   @Action(/^one_working_time__+\d+/)
   async onClickOneWorkingTime(@Ctx() ctx: Context) {    
     await this.botService.onClickOneWorkingTime(ctx);
   }
-
   
   @Action(/^end_work_time__+\d+/)
   async onClickEndWorkTime(@Ctx() ctx: Context) {    
@@ -74,6 +76,11 @@ export class BotUpdate {
   @Hears("Tashlab ketish ➡️")
   async onSkip(@Ctx() ctx: Context) {
     await this.botService.onSkip(ctx);
+  }
+  
+  @Hears("Tasdiqlash✅")
+  async onConfirmed(@Ctx() ctx: Context) {
+    await this.botService.onConfirmed(ctx);
   }
 
   @On("contact")
