@@ -47,8 +47,6 @@ export class BotService {
     }
   }
 
-
-
   async onStop(ctx: Context) {
     try {
       const user_id = ctx.from?.id;
@@ -66,8 +64,6 @@ export class BotService {
       console.log("onStop error: ", error);
     }
   }
-
-
 
   async onRegistration(ctx: Context) {
     try {
@@ -93,8 +89,6 @@ export class BotService {
       console.log("onRegistration error: ", error);
     }
   }
-
-
 
   async onClickOneWorkingTime(ctx: Context) {
     try {
@@ -131,7 +125,6 @@ export class BotService {
     }
   }
 
-
   async onClickEndWorkTime(ctx: Context) {
     try {
       const user_id = ctx.from?.id;
@@ -154,7 +147,7 @@ export class BotService {
         if (master && master.last_state == "end_work_time") {
           const end_work_time = ctx.callbackQuery!["data"].split("__")[1];
           console.log(end_work_time);
-          
+
           master.end_work_time = end_work_time;
           master.last_state = "one_working_time";
           await master.save();
@@ -189,8 +182,168 @@ export class BotService {
     }
   }
 
+  async onClickCallAdmin(ctx: Context) {
+    try {
+      const master_id = ctx.callbackQuery!["data"].split("__")[1];
+      console.log(master_id);
+      
+      const master = await this.masterModel.findOne({
+        where: { user_id: master_id },
+        order: [["id", "DESC"]],
+      });
 
+      
+      if (master) {
+        console.log(master.phone_number);
+        
+        await ctx.reply(
+          "Adminga telefon raqamingiz yuborilsinmi, sizga shu raqam orqali aloqaga chiqishadi",
+          {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "Ha✅",
+                    callback_data: `send_admin__${master.phone_number}`,
+                  },
+                ],
+              ],
+            },
+          }
+        );
+      }
+    } catch (error) {
+      console.log("onClickCallAdmin error: ", error);
+    }
+  }
+  async onSendPhoneNumber(ctx: Context) {
+    try {
+      const master_phoneNumber = ctx.callbackQuery!["data"].split("__")[1];
+      if (master_phoneNumber) {
+        this.bot.telegram.sendMessage(
+          process.env.ADMIN!,
+          `Sizga ushbu raqam bilan murojat tushdi ${master_phoneNumber}`
+        );
+        await ctx.reply("Qabul qilindi✅")
+      }
+    } catch (error) {
+      console.log("onSendPhoneNumber error: ", error);
+    }
+  }
+  async onClickRejectMaster(ctx: Context) {
+    try {
+      const master_id = ctx.callbackQuery!["data"].split("__")[1];
+      const master = await this.masterModel.findOne({
+        where: { id: master_id },
+        order: [["id", "DESC"]],
+      });
+      if (master) {
+        if (!master.is_confirmed && master.last_state == "is_confirmed") {
+          await master.destroy();
+          console.log(master);
 
+          await ctx.reply(
+            "Sizning so'rvingiz muvaffaqqiyatli bekor qilindi ✅",
+            {
+              ...Markup.keyboard([["Ro'yxatdan o'tish 👨‍💻"]])
+                .resize()
+                .oneTime(),
+            }
+          );
+        }
+      }
+    } catch (error) {
+      console.log("onClickRejectMaster error: ", error);
+    }
+  }
+  async onClickCheckAction(ctx: Context) {
+    try {
+      const master_id = ctx.callbackQuery!["data"].split("_")[1];
+      const master = await this.masterModel.findOne({
+        where: { id: master_id },
+        order: [["id", "DESC"]],
+      });
+      if (master) {
+        if (!master.is_confirmed && master.last_state == "is_confirmed") {
+          await ctx.reply("Sizning so'rovingiz hali tasdiqlanganicha yo'q 🤷‍♂️");
+        } else if (!master.is_confirmed && master.last_state == "finish") {
+          await ctx.reply(
+            "Sizning so'rovingiz rad etilgan ❌\n<i>Qaytadan ro'yxatdan o'tishingiz mumkin</i>",
+            {
+              parse_mode: "HTML",
+              ...Markup.keyboard([["Usta 👨‍🔧", "Mijoz 👤"]])
+                .resize()
+                .oneTime(),
+            }
+          );
+        } else if (master.is_confirmed && master.last_state == "finish") {
+          await ctx.reply("Sizning so'rovingiz tasdiqlangan ✅", {
+            ...Markup.keyboard([
+              ["Mijozlar 👤", "Vaqt🕒", "Reyting 📈"],
+              ["Ma'lumotlarni o'zgartirish 📝"],
+            ]).resize(),
+          });
+        }
+      }
+    } catch (error) {
+      console.log("onClickCheckAction error: ", error);
+    }
+  }
+
+  async onClickCinfirmForAdmin(ctx: Context) {
+    try {
+      const master_id = ctx.callbackQuery!["data"].split("_")[1];
+      const master = await this.masterModel.findOne({
+        where: { id: master_id, last_state: "is_confirmed" },
+        order: [["id", "DESC"]],
+      });
+      if (master) {
+        master.last_state = "finish";
+        master.is_confirmed = true;
+        await master.save();
+
+        await this.bot.telegram.sendMessage(
+          master.user_id!,
+          "Sizning so'rovingiz muvaqqiyatli tasdiqlandi",
+          {
+            ...Markup.keyboard([
+              ["Mijozlar 👤", "Vaqt🕒", "Reyting 📈"],
+              ["Ma'lumotlarni o'zgartirish 📝"],
+            ]).resize(),
+          }
+        );
+      }
+    } catch (error) {
+      console.log("onClickCinfirmForAdmin error: ", error);
+    }
+  }
+
+  async onClickRejectForAdmin(ctx: Context) {
+    try {
+      const master_id = ctx.callbackQuery!["data"].split("_")[1];
+      const master = await this.masterModel.findOne({
+        where: { id: master_id, last_state: "is_confirmed" },
+        order: [["id", "DESC"]],
+      });
+      if (master) {
+        master.last_state = "finish";
+        master.is_confirmed = false;
+        await master.save();
+
+        await this.bot.telegram.sendMessage(
+          master.user_id!,
+          "Kechirasiz sizning so'rovingiz rad etildi😔",
+          {
+            ...Markup.keyboard([["Ro'yxatdan o'tish 👨‍💻"]])
+              .resize()
+              .oneTime(),
+          }
+        );
+      }
+    } catch (error) {
+      console.log("onClickRejectForAdmin error: ", error);
+    }
+  }
 
   async onClickStartWorkTime(ctx: Context) {
     try {
@@ -249,9 +402,6 @@ export class BotService {
     }
   }
 
-
-
-
   async onClickProfession(ctx: Context) {
     try {
       const user_id = ctx.from?.id;
@@ -289,8 +439,6 @@ export class BotService {
       console.log("onClickProfession error: ", error);
     }
   }
-
-
 
   async onClickMaster(ctx: Context) {
     try {
@@ -332,8 +480,6 @@ export class BotService {
     }
   }
 
-
-
   async onCommanAdmin(ctx: Context) {
     try {
       await ctx.reply("Kasb qo'shish uchun <b>Kasb qo'shish 🧑‍💻</b> ni bosing", {
@@ -346,8 +492,6 @@ export class BotService {
       console.log("onCommanAdmin error: ", error);
     }
   }
-
-
 
   async onAddProfession(ctx: Context) {
     try {
@@ -362,8 +506,6 @@ export class BotService {
       console.log("onAddPerfission error ", error);
     }
   }
-
-
 
   async onLocation(ctx: Context) {
     try {
@@ -409,8 +551,6 @@ export class BotService {
       console.log("OnLocationError: ", error);
     }
   }
-
-
 
   async onSkip(ctx: Context) {
     try {
@@ -499,37 +639,39 @@ export class BotService {
             }
           );
           await ctx.reply("Tasdiqlash xabari muvaqqiyatli yuborildi:", {
-            ...Markup.removeKeyboard()
-          })
-          await ctx.reply("Tez fursatlarda admin tomonidan so'rovingizga javob qaytariladi:", {
-            reply_markup:{
-              inline_keyboard:[
-                [
-                  {
-                    text : "Tekshirish 🛠️",
-                    callback_data:`check_${master.id}`
-                  },
-                  {
-                    text : "Bekor qilish ❌",
-                    callback_data:`reject_master__${master.id}`
-                  },
+            ...Markup.removeKeyboard(),
+          });
+          await ctx.reply(
+            "Tez fursatlarda admin tomonidan so'rovingizga javob qaytariladi:",
+            {
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: "Tekshirish 🛠️",
+                      callback_data: `check_${master.id}`,
+                    },
+                    {
+                      text: "Bekor qilish ❌",
+                      callback_data: `reject_master__${master.id}`,
+                    },
+                  ],
+                  [
+                    {
+                      text: "Admin bilan bog'lanish 📞",
+                      callback_data: `call_admin__${user_id}`,
+                    },
+                  ],
                 ],
-                [
-                  {
-                    text : "Admin bilan bog'lanish 📞",
-                    callback_data:`call_admin__${user_id}`
-                  }
-                ]
-              ]
+              },
             }
-          })
+          );
         }
       }
     } catch (error) {
       console.log("onConfirmed error: ", error);
     }
   }
-
 
   async onContact(ctx: Context) {
     try {
@@ -565,8 +707,6 @@ export class BotService {
       console.log("onText error: ", error);
     }
   }
-
-
 
   async onText(ctx: Context) {
     try {

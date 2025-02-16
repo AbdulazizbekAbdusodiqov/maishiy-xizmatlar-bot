@@ -1,5 +1,6 @@
 import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { Profession } from "./professions.model";
+import { toDefaultValue } from "sequelize/types/utils";
 
 interface IMasterCreationAttr {
   user_id: number | undefined;
@@ -73,6 +74,7 @@ export class Master extends Model<Master, IMasterCreationAttr> {
   one_working_time: number | undefined;
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue:false
   })
   is_confirmed: boolean | undefined;
 
