@@ -494,6 +494,26 @@ export class BotService {
                 [Markup.button.contactRequest("📞 Kontaktni ulashish")],
               ]).resize()
             );
+          }else if (master && master.last_state == "workshop_name") {
+            master.workshop_name = ctx.message.text;
+            master.last_state = "address";
+            await master.save();
+
+            await ctx.replyWithHTML(
+              "<b>Iltimos ustaxonangiz manzilini kiriting</b> masalan <b>Amir Temur hiyoboni</b> \n<i>(majburiy emas)</i>",
+              Markup.keyboard(["Tashlab ketish ➡️"]).resize()
+            );
+          } else if (master && master.last_state == "address") {
+            master.address = ctx.message.text;
+            master.last_state = "location";
+            await master.save();
+
+            await ctx.replyWithHTML(
+              "<b>Iltimos ustaxonangiz lokatsiyasini jo'nating:</b>\n<i>kartadan topib yuborish tavsiya etiladi</i>",
+              Markup.keyboard([
+                [Markup.button.locationRequest("Hozir turgan joyingiz📍")],
+              ]).resize()
+            );
           }
         }
         if (user_id == process.env.ADMIN) {
