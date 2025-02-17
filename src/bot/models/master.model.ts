@@ -13,6 +13,7 @@ interface IMasterCreationAttr {
   start_work_time: string | undefined;
   end_work_time: string | undefined;
   one_working_time: number | undefined;
+  rating:number | undefined;
   last_state: string;
 }
 
@@ -79,7 +80,13 @@ export class Master extends Model<Master, IMasterCreationAttr> {
   is_confirmed: boolean | undefined;
 
   @Column({
+    type:DataType.INTEGER
+  })
+  rating:number;
+
+  @Column({
     type: DataType.STRING,
   })
   last_state: string;
+
 }

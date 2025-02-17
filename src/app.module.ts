@@ -7,6 +7,7 @@ import { SequelizeModule } from "@nestjs/sequelize";
 import { Profession } from "./bot/models/professions.model";
 import { Master } from "./bot/models/master.model";
 import { BOT_NAME } from "./app.constants";
+import { Customer } from "./bot/models/customer.model";
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { BOT_NAME } from "./app.constants";
       port: Number(process.env.POSTGRES_PORT),
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      models: [Bot,Profession, Master],
+      models: [Bot,Profession, Master, Customer ],
       autoLoadModels: true,
       sync: { alter: true, force:false },
       logging: false,
