@@ -6,11 +6,13 @@ import { Profession } from "./models/professions.model";
 import { Master } from "./models/master.model";
 import { InjectBot } from "nestjs-telegraf";
 import { BOT_NAME } from "src/app.constants";
+import { Rating } from "./models/rating.model";
 
 @Injectable()
 export class BotService {
   constructor(
     @InjectModel(Bot) private readonly botModel: typeof Bot,
+    @InjectModel(Rating) private readonly ratingModel: typeof Rating,
     @InjectModel(Profession)
     private readonly professionModel: typeof Profession,
     @InjectModel(Master) private readonly masterModel: typeof Master,
@@ -596,6 +598,7 @@ export class BotService {
       console.log("onSkip error: ", error);
     }
   }
+
   async onClickReyting(ctx: Context) {
     try {
       if ("text" in ctx.message!) {
@@ -613,8 +616,39 @@ export class BotService {
               .oneTime(),
           });
         } else if (master) {
-          
-          await ctx.reply('')
+          const masterRating = (await this.ratingModel.findOne({
+            attributes: [
+              [
+                this.ratingModel.sequelize!.fn(
+                  "AVG",
+                  this.ratingModel.sequelize!.col("rating_number")
+                ),
+                "avg_rating",
+              ],
+            ],
+            where: { master_id: master.id },
+            raw: true, // Natijani oddiy object ko'rinishida olish uchun
+          })) as unknown as { avg_rating: number };
+
+          if (!masterRating?.avg_rating) {
+            await ctx.reply("Hozircha sizning reytingingiz 0 ga teng 😕", {
+              ...Markup.keyboard([
+                ["Mijozlar 👤", "Vaqt🕒", "Reyting ⭐️"],
+                ["Ma'lumotlarni o'zgartirish 📝"],
+              ]).resize(),
+            });
+          } else {
+            await ctx.reply(
+              `Hozircha sizning reytingingiz <b>${parseFloat(Number(masterRating.avg_rating).toString()).toFixed(1)}⭐️</b> ga teng`,
+              {
+                parse_mode: "HTML",
+                ...Markup.keyboard([
+                  ["Mijozlar 👤", "Vaqt🕒", "Reyting ⭐️"],
+                  ["Ma'lumotlarni o'zgartirish 📝"],
+                ]).resize(),
+              }
+            );
+          }
         }
       }
     } catch (error) {
