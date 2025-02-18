@@ -122,6 +122,12 @@ export class BotUpdate {
     await this.botService.onLocation(ctx);
   }
 
+
+  @Hears('Reyting ⭐️')
+  async onClickReyting(@Ctx() ctx: Context){
+    await this.botService.onClickReyting(ctx)
+  }
+
   @On("text")
   async onText(@Ctx() ctx: Context) {
     await this.botService.onText(ctx);

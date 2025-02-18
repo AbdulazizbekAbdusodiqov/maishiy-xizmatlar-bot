@@ -12,10 +12,10 @@ export class Customer extends Model<Customer, ICustomerCreationAttr> {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
-    primaryKey:true
+    primaryKey: true,
   })
   id: number;
-  
+
   @Column({
     type: DataType.BIGINT,
   })

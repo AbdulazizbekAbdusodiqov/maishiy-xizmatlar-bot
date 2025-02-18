@@ -186,16 +186,15 @@ export class BotService {
     try {
       const master_id = ctx.callbackQuery!["data"].split("__")[1];
       console.log(master_id);
-      
+
       const master = await this.masterModel.findOne({
         where: { user_id: master_id },
         order: [["id", "DESC"]],
       });
 
-      
       if (master) {
         console.log(master.phone_number);
-        
+
         await ctx.reply(
           "Adminga telefon raqamingiz yuborilsinmi, sizga shu raqam orqali aloqaga chiqishadi",
           {
@@ -224,7 +223,7 @@ export class BotService {
           process.env.ADMIN!,
           `Sizga ushbu raqam bilan murojat tushdi ${master_phoneNumber}`
         );
-        await ctx.reply("Qabul qilindi✅")
+        await ctx.reply("Qabul qilindi✅");
       }
     } catch (error) {
       console.log("onSendPhoneNumber error: ", error);
@@ -307,7 +306,7 @@ export class BotService {
           "Sizning so'rovingiz muvaqqiyatli tasdiqlandi",
           {
             ...Markup.keyboard([
-              ["Mijozlar 👤", "Vaqt🕒", "Reyting 📈"],
+              ["Mijozlar 👤", "Vaqt🕒", "Reyting ⭐️"],
               ["Ma'lumotlarni o'zgartirish 📝"],
             ]).resize(),
           }
@@ -595,6 +594,31 @@ export class BotService {
       }
     } catch (error) {
       console.log("onSkip error: ", error);
+    }
+  }
+  async onClickReyting(ctx: Context) {
+    try {
+      if ("text" in ctx.message!) {
+        const user_id = ctx.from?.id;
+        const master = await this.masterModel.findOne({
+          where: { user_id: user_id, last_state: "finish" },
+          order: [["id", "DESC"]],
+        });
+
+        if (!master) {
+          await ctx.reply(`Iltimos oldin botni qayta ishga tushuring`, {
+            parse_mode: "HTML",
+            ...Markup.keyboard([["/start"]])
+              .resize()
+              .oneTime(),
+          });
+        } else if (master) {
+          
+          await ctx.reply('')
+        }
+      }
+    } catch (error) {
+      console.log("onClickReyting error: ", error);
     }
   }
 
