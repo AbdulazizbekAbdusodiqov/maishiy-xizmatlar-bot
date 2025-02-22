@@ -32,4 +32,9 @@ export class Customer extends Model<Customer, ICustomerCreationAttr> {
     type: DataType.STRING,
   })
   last_state: string;
+  
+  @Column({
+    type: DataType.STRING,
+  })
+  search_type: string | undefined;
 }

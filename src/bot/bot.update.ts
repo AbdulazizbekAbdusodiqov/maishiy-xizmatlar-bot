@@ -35,6 +35,10 @@ export class BotUpdate {
   async onClickMaster(@Ctx() ctx: Context) {
     await this.botService.onClickMaster(ctx);
   }
+  @Hears("Mijoz 👤")
+  async onClickCustomer(@Ctx() ctx: Context) {
+    await this.botService.onClickCustomer(ctx);
+  }
 
   @Action(/^profession_+\d+/)
   async onClickProfession(@Ctx() ctx: Context) {
@@ -72,6 +76,15 @@ export class BotUpdate {
   @Action(/^check_+\d+/)
   async onClickCheckAction(@Ctx() ctx: Context) {
     await this.botService.onClickCheckAction(ctx);
+  }
+
+  @Action(/^customer_click_profession__+\d+/)
+  async onClickCustomerProfession(@Ctx() ctx: Context) {
+    await this.botService.onClickCustomerProfession(ctx);
+  }
+  @Action(/^serch_name_+\d+/)
+  async onClickSearchName(@Ctx() ctx: Context) {
+    await this.botService.onClickSearchName(ctx);
   }
 
   @UseFilters(TelegrafExceptionFilter)
@@ -122,6 +135,16 @@ export class BotUpdate {
     await this.botService.onLocation(ctx);
   }
 
+
+
+  @Hears('Xizmatlar')
+  async onClickServices(@Ctx() ctx: Context){
+    await this.botService.onClickServices(ctx)
+  }
+  @Hears('Tanlangan Xizmatlar')
+  async onClickSelectedServices(@Ctx() ctx: Context){
+    await this.botService.onClickSelectedServices(ctx)
+  }
 
   @Hears('Reyting ⭐️')
   async onClickReyting(@Ctx() ctx: Context){

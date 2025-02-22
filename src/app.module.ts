@@ -8,6 +8,7 @@ import { Profession } from "./bot/models/professions.model";
 import { Master } from "./bot/models/master.model";
 import { BOT_NAME } from "./app.constants";
 import { Customer } from "./bot/models/customer.model";
+import { SelectedServices } from "./bot/models/selected_services.model";
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { Customer } from "./bot/models/customer.model";
       port: Number(process.env.POSTGRES_PORT),
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      models: [Bot,Profession, Master, Customer ],
+      models: [Bot,Profession, Master, Customer, SelectedServices ],
       autoLoadModels: true,
       sync: { alter: true, force:false },
       logging: false,

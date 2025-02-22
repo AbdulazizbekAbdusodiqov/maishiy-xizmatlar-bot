@@ -7,6 +7,10 @@ import { Master } from "./models/master.model";
 import { InjectBot } from "nestjs-telegraf";
 import { BOT_NAME } from "src/app.constants";
 import { Rating } from "./models/rating.model";
+import { Customer } from "./models/customer.model";
+import { SelectedServices } from "./models/selected_services.model";
+import { Op } from "sequelize";
+import { BIGINT } from "sequelize";
 
 @Injectable()
 export class BotService {
@@ -16,6 +20,9 @@ export class BotService {
     @InjectModel(Profession)
     private readonly professionModel: typeof Profession,
     @InjectModel(Master) private readonly masterModel: typeof Master,
+    @InjectModel(Customer) private readonly customerModel: typeof Customer,
+    @InjectModel(SelectedServices)
+    private readonly selectedServicesModel: typeof SelectedServices,
     @InjectBot(BOT_NAME) private readonly bot: Telegraf<Context>
   ) {}
 
@@ -290,6 +297,68 @@ export class BotService {
       console.log("onClickCheckAction error: ", error);
     }
   }
+  async onClickCustomerProfession(ctx: Context) {
+    try {
+      const profession_id = ctx.callbackQuery!["data"].split("__")[1];
+      const profession = await this.professionModel.findOne({
+        where: { id: profession_id, last_state: "finish" },
+        order: [["id", "DESC"]],
+      });
+      if (profession) {
+        await ctx.reply(`Qanday tarzda qidirmoqchisiz:`, {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "ISM", callback_data: `serch_name_${profession.id}` }],
+              [
+                {
+                  text: "REYTING",
+                  callback_data: `serch_rating_${profession.id}`,
+                },
+              ],
+              [
+                {
+                  text: "LOKATSIYA",
+                  callback_data: `serch_location_${profession.id}`,
+                },
+              ],
+            ],
+          },
+        });
+        if (ctx.callbackQuery?.message?.message_id) {
+          await ctx.deleteMessage(ctx.callbackQuery.message.message_id);
+        }
+      }
+    } catch (error) {
+      console.log("onClickCustomerProfession error: ", error);
+    }
+  }
+  async onClickSearchName(ctx: Context) {
+    try {
+      console.log(ctx.callbackQuery?.from.id);
+      
+      const customer = await this.customerModel.findOne({
+        where: { user_id: Number(ctx.callbackQuery?.from.id) },
+      });
+      if (customer) {
+        
+        const profession_id = ctx.callbackQuery!["data"].split("_").at(-1);
+        
+        const profession = await this.professionModel.findOne({
+          where: { id: profession_id },
+        });
+        if (profession) {
+          customer.search_type = `name_${profession.id}`;
+          await customer.save();
+
+          await ctx.reply("Usta ismini kiriting:", {
+            ...Markup.removeKeyboard(),
+          });
+        }
+      }
+    } catch (error) {
+      console.log("onClickSearchName error: ", error);
+    }
+  }
 
   async onClickCinfirmForAdmin(ctx: Context) {
     try {
@@ -480,6 +549,47 @@ export class BotService {
       console.log("onClickMaster error: ", error);
     }
   }
+  async onClickCustomer(ctx: Context) {
+    try {
+      const user_id = ctx.from?.id;
+      const user = await this.botModel.findByPk(user_id);
+      let customer = await this.customerModel.findOne({ where: { user_id } });
+
+      if (!user) {
+        await ctx.reply(`Iltimos oldin botni qayta ishga tushuring`, {
+          parse_mode: "HTML",
+          ...Markup.keyboard([["/start"]])
+            .resize()
+            .oneTime(),
+        });
+      } else if (user) {
+        if (!customer) {
+          await this.customerModel.create({ user_id, last_state: "name" });
+          customer = await this.customerModel.findOne({ where: { user_id } });
+        }
+        if (customer?.last_state == "name") {
+          await ctx.reply("Iltimos ismingizni kiriting: ", {
+            ...Markup.removeKeyboard(),
+          });
+        } else if (customer?.last_state == "phone_number") {
+          await ctx.reply("📞 Iltimos raqamingizni ulashing: ", {
+            ...Markup.keyboard([
+              Markup.button.contactRequest("Telefon raqamni ulashish 📞"),
+            ]).resize(),
+          });
+        } else if (customer?.last_state == "finish") {
+          await ctx.reply("Siz oldin ro'yxatdan o'tgansiz:", {
+            ...Markup.keyboard([
+              ["Xizmatlar", "Tanlangan Xizmatlar"],
+              ["Ma'lumotlarni o'zgartirish"],
+            ]).resize(),
+          });
+        }
+      }
+    } catch (error) {
+      console.log("onClickCustomer error: ", error);
+    }
+  }
 
   async onCommanAdmin(ctx: Context) {
     try {
@@ -655,6 +765,94 @@ export class BotService {
       console.log("onClickReyting error: ", error);
     }
   }
+  async onClickSelectedServices(ctx: Context) {
+    try {
+      if ("text" in ctx.message!) {
+        const user_id = ctx.from?.id;
+        const customer = await this.customerModel.findOne({
+          where: { user_id: user_id, last_state: "finish" },
+        });
+
+        if (customer) {
+          const selectedServices = await this.selectedServicesModel.findAll({
+            where: { customerId: customer.id },
+            include: { all: true },
+          });
+          if (!selectedServices) {
+            await ctx.reply("Hozircha hech qanday xizmatdan foydalanmagansiz", {
+              ...Markup.keyboard([
+                ["Xizmatlar", "Tanlangan Xizmatlar"],
+                ["Ma'lumotlarni o'zgartirish"],
+              ]),
+            });
+          } else if (selectedServices) {
+            for (let service of selectedServices) {
+              if (service.last_state != "finish") {
+                await ctx.replyWithHTML(
+                  `Xizmat nomi: <b>${service.profession.name!}</b>\nSana: <b>${service.createdAt}</b>\nVaqt: <b>${service.time}</b>`,
+                  {
+                    reply_markup: {
+                      inline_keyboard: [
+                        [
+                          {
+                            text: "Manzilni ko'rish",
+                            callback_data: `service_location__${service.master.id}`,
+                          },
+                        ],
+                      ],
+                    },
+                  }
+                );
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.log("onClickSelectedServices error: ", error);
+    }
+  }
+  async onClickServices(ctx: Context) {
+    try {
+      if ("text" in ctx.message!) {
+        const user_id = ctx.from?.id;
+        const customer = await this.customerModel.findOne({
+          where: { user_id: user_id, last_state: "finish" },
+        });
+
+        if (customer) {
+          const professions = await this.professionModel.findAll({
+            where: { last_state: "finish" },
+          });
+          if (!professions) {
+            await ctx.reply("Hozircha hech qanday xizmatlar mavjud emas", {
+              ...Markup.keyboard([
+                ["Xizmatlar", "Tanlangan Xizmatlar"],
+                ["Ma'lumotlarni o'zgartirish"],
+              ]),
+            });
+          } else if (professions) {
+            let replyKeyboard: any[] = [];
+            for (const profession of professions) {
+              replyKeyboard.push([
+                {
+                  text: profession.name,
+                  callback_data: `customer_click_profession__${profession.id}`,
+                },
+              ]);
+            }
+            await ctx.reply("Xizmatlar:", {
+              reply_markup: {
+                inline_keyboard: replyKeyboard,
+              },
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.log("onClickServices error: ", error);
+    }
+  }
 
   async onConfirmed(ctx: Context) {
     try {
@@ -736,7 +934,6 @@ export class BotService {
       if ("contact" in ctx.message!) {
         const user_id = ctx.from?.id;
         const user = await this.botModel.findByPk(user_id);
-
         if (!user) {
           await ctx.reply(`Iltimos oldin botni qayta ishga tushuring`, {
             parse_mode: "HTML",
@@ -749,7 +946,7 @@ export class BotService {
             where: { user_id },
             order: [["id", "DESC"]],
           });
-          if (master && master.last_state == "phone_number") {
+          if (master && master.last_state === "phone_number") {
             master.phone_number = ctx.message.contact.phone_number;
             master.last_state = "workshop_name";
             await master.save();
@@ -758,6 +955,26 @@ export class BotService {
               "<b>Iltimos ustaxonangiz nomini kiriting</b> <i>(majburiy emas)</i>:",
               Markup.keyboard(["Tashlab ketish ➡️"]).resize()
             );
+          } else {
+
+            const customer = await this.customerModel.findOne({
+              where: { user_id },
+            });
+            
+            if (customer && customer.last_state == 'phone_number') {
+              customer.phone_number = ctx.message.contact.phone_number;
+              customer.last_state = "finish";
+              await customer.save();
+              await ctx.reply(
+                "Tabriklayman siz muvaffaqqiyatli ro'yxatdan o'ttingiz",
+                {
+                  ...Markup.keyboard([
+                    ["Xizmatlar", "Tanlangan Xizmatlar"],
+                    ["Ma'lumotlarni o'zgartirish"],
+                  ]).resize(),
+                }
+              );
+            }
           }
         }
       }
@@ -814,8 +1031,66 @@ export class BotService {
                 [Markup.button.locationRequest("Hozir turgan joyingiz📍")],
               ]).resize()
             );
+          } else {
+            const customer = await this.customerModel.findOne({
+              where: { user_id },
+            });
+            if (customer && customer.last_state == "name") {
+              customer.name = ctx.message.text;
+              customer.last_state = "phone_number";
+              await customer.save();
+
+              await ctx.reply("Iltimos telefon raqamingizni ulashing:",{
+                ...Markup.keyboard([Markup.button.contactRequest("Telefon raqamni ulashish📞")]).resize()
+              })
+
+            } else if (
+              customer?.search_type &&
+              /^name_+\d+/.test(customer.search_type)
+            ) {
+              const profession_id = customer.search_type.split("_")[1];
+              const masters = await this.masterModel.findAll({
+                where: {
+                  profession_id: +profession_id,
+                  last_state: "finish",
+                  name: { [Op.iLike]: ctx.message.text },
+                },
+              });
+              for (const master of masters) {
+                await ctx.reply(
+                  `ISMI - ${master.name}\nTELEFON RAQAMI - ${master.phone_number}\nUSTAXONA NOMI - ${master.workshop_name}\nMANZILI - ${master.address}\n`,
+                  {
+                    reply_markup: {
+                      inline_keyboard: [
+                        [
+                          {
+                            text: "Lokatsiya",
+                            callback_data: `master_location__${master.id}`,
+                          },
+                          {
+                            text: "Vaqt olish",
+                            callback_data: `master_time__${master.id}`,
+                          },
+                        ],
+                        [
+                          {
+                            text: "Baholash",
+                            callback_data: `master_reyting__${master.id}`,
+                          },
+                          {
+                            text: "Ortga ⬅️",
+                            callback_data: `customer_click_profession__${profession_id}`,
+                          },
+                        ],
+                      ],
+                    },
+                  }
+                );
+              }
+            }
           }
         }
+
         if (user_id == process.env.ADMIN) {
           const profession = await this.professionModel.findOne({
             where: {

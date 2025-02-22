@@ -1,6 +1,5 @@
 import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
 import { Profession } from "./professions.model";
-import { toDefaultValue } from "sequelize/types/utils";
 
 interface IMasterCreationAttr {
   user_id: number | undefined;
@@ -19,13 +18,13 @@ interface IMasterCreationAttr {
 
 @Table({ tableName: "master" })
 export class Master extends Model<Master, IMasterCreationAttr> {
+ 
   @Column({
     type: DataType.INTEGER,
     primaryKey: true,
-    autoIncrement:true
-    
+    autoIncrement:true   
   })
-  id: number | undefined;
+  id: number;
 
   @ForeignKey(()=>Profession)
   @Column({
@@ -43,6 +42,7 @@ export class Master extends Model<Master, IMasterCreationAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull:false
   })
   name: string | undefined;
   @Column({

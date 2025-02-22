@@ -1,4 +1,5 @@
-import { Column, DataType, Model, Table } from "sequelize-typescript";
+import { Column, DataType, HasMany, Model, Table } from "sequelize-typescript";
+import { SelectedServices } from "./selected_services.model";
 
 interface IProfessionsCreationAttr {
   name: string | undefined;
